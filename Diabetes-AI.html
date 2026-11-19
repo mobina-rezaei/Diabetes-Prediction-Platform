@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diabetes AI | سامانه تحلیل دیابت</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #09090d;
+  --panel: #121218;
+  --panel2: #19171f;
+  --red: #a51d46;
+  --red2: #e13b68;
+  --text: #f6f1f4;
+  --muted: #99929e;
+  --border: #30202a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 90% 0%, #45102544, transparent 35%),
+    radial-gradient(ellipse at 0% 80%, #68132b22, transparent 35%),
+    var(--bg);
+  color: var(--text);
+  font-family: Vazirmatn, sans-serif;
+  min-height: 100vh;
+}
+header {
+  padding: 22px 7%;
+  border-bottom: 1px solid #ffffff12;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon {
+  background: linear-gradient(135deg,#e13b68,#70132f);
+  width:45px;height:45px;border-radius:14px;
+  display:grid;place-items:center;font-size:23px;
+  box-shadow:0 5px 25px #a51d4655;
+}
+.logo h2 { font-size:18px; margin:0; }
+.logo small { color:var(--muted); font-size:11px; }
+.status {
+  color:#f28ca8;background:#a51d4622;
+  border:1px solid #a51d4655;
+  border-radius:30px;padding:7px 14px;font-size:11px;
+}
+main { max-width:1100px; margin:auto; padding:45px 22px; }
+.hero { text-align:center; margin-bottom:35px; }
+.tag {
+  display:inline-block; color:#ed7293;
+  background:#a51d4620;padding:7px 15px;
+  border-radius:30px;font-size:12px;
+}
+.hero h1 { font-size:clamp(27px,5vw,42px); margin:18px 0 10px; }
+.hero h1 span { color:var(--red2); }
+.hero p { color:var(--muted); font-size:14px; line-height:2; }
+.dashboard {
+  display:grid; grid-template-columns:1.15fr .85fr;
+  gap:20px; align-items:start;
+}
+.card {
+  background:linear-gradient(145deg,#17151c,#101015);
+  border:1px solid var(--border);
+  border-radius:20px;padding:26px;
+  box-shadow:0 15px 45px #0005;
+}
+.card-title { display:flex; align-items:center; gap:12px; margin-bottom:25px; }
+.card-title .symbol {
+  width:40px;height:40px;border-radius:12px;
+  background:#a51d4628;display:grid;place-items:center;font-size:20px;
+}
+.card-title h3 { margin:0;font-size:17px; }
+.card-title p { margin:4px 0 0;color:var(--muted);font-size:11px; }
+.fields {
+  display:grid;grid-template-columns:1fr 1fr;gap:18px;
+}
+.field label { display:block;font-size:12px;margin-bottom:9px;color:#d4cbd1; }
+.field input {
+  width:100%;background:#0c0c11;border:1px solid #382531;
+  border-radius:11px;padding:14px;color:white;
+  font:14px Vazirmatn;outline:none;transition:.2s;
+  direction:ltr;text-align:right;
+}
+.field input:focus { border-color:var(--red2);box-shadow:0 0 0 3px #a51d4620; }
+.field small { color:#77717b;font-size:10px;display:block;margin-top:7px; }
+.unit { color:#e66c8d; }
+.submit {
+  width:100%;border:0;border-radius:12px;padding:15px;
+  margin-top:27px;background:linear-gradient(100deg,#81152f,#d32d5a);
+  color:white;font:600 15px Vazirmatn;cursor:pointer;
+  box-shadow:0 8px 25px #a51d4640;transition:.2s;
+}
+.submit:hover { transform:translateY(-2px);filter:brightness(1.15); }
+.reset {
+  background:transparent;border:1px solid #49303b;
+  color:#c9aeb9;border-radius:10px;padding:10px 16px;
+  font:12px Vazirmatn;cursor:pointer;margin-top:12px;width:100%;
+}
+.result-box { min-height:310px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center; }
+.result-icon {
+  width:100px;height:100px;border-radius:50%;
+  background:#a51d4618;border:1px solid #a51d4655;
+  display:grid;place-items:center;font-size:42px;margin-bottom:20px;
+}
+.result-box h3 { font-size:19px;margin:0 0 8px; }
+.result-box p { color:var(--muted);font-size:12px;line-height:2;max-width:280px; }
+.result-placeholder { color:#827984;font-size:13px;line-height:2; }
+.result-label {
+  display:inline-block;padding:8px 18px;
+  border-radius:30px;margin-top:12px;font-size:12px;
+}
+.positive { background:#a51d4625;color:#ff8da9;border:1px solid #b83255; }
+.negative { background:#178c5420;color:#66d9a1;border:1px solid #178c54; }
+.metrics {
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px;margin-top:20px;width:100%;
+}
+.metric { background:#0c0c11;border:1px solid #ffffff0c;padding:12px;border-radius:12px; }
+.metric span { display:block;font-size:10px;color:var(--muted); }
+.metric strong { font-size:17px;display:block;margin-top:5px; }
+.info {
+  margin-top:22px;background:#a51d4610;
+  border:1px solid #a51d4630;border-radius:14px;
+  padding:15px;font-size:11px;color:#c6abb5;line-height:2.2;
+}
+footer { text-align:center;padding:25px;color:#69616c;font-size:11px; }
+@media(max-width:750px) {
+ .dashboard {grid-template-columns:1fr;}
+ main {padding:30px 15px;}
+ .card {padding:20px;}
+}
+@media(max-width:420px) {
+ .fields {grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✚</div>
+    <div>
+      <h2>Diabetes AI</h2>
+      <small>هوش مصنوعی تحلیل ریسک دیابت</small>
+    </div>
+  </div>
+  <div class="status">● سیستم آماده تحلیل</div>
+</header>
+
+<main>
+  <section class="hero">
+    <span class="tag">✦ SMART HEALTH ANALYTICS</span>
+    <h1>سامانه هوشمند <span>تحلیل دیابت</span></h1>
+    <p>اطلاعات خود را وارد کنید تا مدل درخت تصمیم، وضعیت شما را بر اساس الگوریتم ارائه‌شده تحلیل کند.</p>
+  </section>
+
+  <section class="dashboard">
+    <div class="card">
+      <div class="card-title">
+        <div class="symbol">⌘</div>
+        <div>
+          <h3>اطلاعات پزشکی</h3>
+          <p>لطفاً مقادیر زیر را با دقت وارد کنید</p>
+        </div>
+      </div>
+
+      <form id="diabetesForm">
+        <div class="fields">
+          <div class="field">
+            <label>قند خون (Glucose) <span class="unit">mg/dL</span></label>
+            <input id="glucose" type="number" min="1" max="1000" step="any" placeholder="مثلاً 120" required>
+            <small>میزان گلوکز خون</small>
+          </div>
+
+          <div class="field">
+            <label>سن (Age) <span class="unit">سال</span></label>
+            <input id="age" type="number" min="1" max="120" placeholder="مثلاً 35" required>
+            <small>سن فرد بر حسب سال</small>
+          </div>
+
+          <div class="field">
+            <label>شاخص توده بدنی (BMI)</label>
+            <input id="bmi" type="number" min="1" max="100" step="any" placeholder="مثلاً 28.5" required>
+            <small>شاخص توده بدنی</small>
+          </div>
+
+          <div class="field">
+            <label>سابقه خانوادگی (DPF)</label>
+            <input id="dpf" type="number" min="0" max="10" step="any" placeholder="مثلاً 0.5" required>
+            <small>Diabetes Pedigree Function</small>
+          </div>
+        </div>
+
+        <button class="submit" type="submit">✦ تحلیل هوشمند اطلاعات</button>
+        <button class="reset" type="reset">پاک کردن اطلاعات</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="symbol">◈</div>
+        <div>
+          <h3>نتیجه تحلیل هوشمند</h3>
+          <p>خروجی مدل درخت تصمیم</p>
+        </div>
+      </div>
+
+      <div class="result-box" id="result">
+        <div class="result-icon">♡</div>
+        <h3>منتظر اطلاعات شما هستیم</h3>
+        <p>پس از تکمیل فرم و کلیک روی دکمه تحلیل، نتیجه الگوریتم در این قسمت نمایش داده می‌شود.</p>
+        <div class="result-placeholder">AI ENGINE · READY</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="info">
+    <strong>ⓘ نکته مهم پزشکی</strong><br>
+    این سامانه یک مدل آزمایشی مبتنی بر قوانین درخت تصمیم است و خروجی آن تشخیص قطعی دیابت محسوب نمی‌شود. برای تشخیص و تصمیم‌گیری درمانی، آزمایش‌های معتبر و ارزیابی پزشک ضروری است.
+  </div>
+</main>
+
+<footer>
+  Diabetes AI © 2026 | سامانه تحلیل هوشمند اطلاعات سلامت
+</footer>
+
+<script>
+const form = document.getElementById('diabetesForm');
+const result = document.getElementById('result');
+
+function predict(glucose, age, bmi, dpf) {
+  // پیاده‌سازی دقیق درخت تصمیم ارسالی
+
+  if (glucose <= 154) {
+    if (age <= 29) return 0;
+
+    if (bmi <= 26.700) return 0;
+
+    if (glucose <= 101) {
+      if (dpf <= 0.709) return 0;
+      return 1;
+    }
+
+    if (bmi <= 43.300) {
+      if (dpf <= 0.464) return 0;
+      return 1;
+    }
+
+    return 1;
+  }
+
+  if (dpf <= 0.307) {
+    if (dpf <= 0.287) return 1;
+    return 0;
+  }
+
+  return 1;
+}
+
+form.addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const glucose = Number(document.getElementById('glucose').value);
+  const age = Number(document.getElementById('age').value);
+  const bmi = Number(document.getElementById('bmi').value);
+  const dpf = Number(document.getElementById('dpf').value);
+
+  if (
+    !Number.isFinite(glucose) ||
+    !Number.isFinite(age) ||
+    !Number.isFinite(bmi) ||
+    !Number.isFinite(dpf) ||
+    glucose <= 0 || age <= 0 || age > 120 ||
+    bmi <= 0 || bmi > 100 ||
+    dpf < 0 || dpf > 10
+  ) {
+    alert('لطفاً مقادیر معتبر وارد کنید.');
+    return;
+  }
+
+  const prediction = predict(glucose, age, bmi, dpf);
+
+  const metrics = `
+    <div class="metrics">
+      <div class="metric"><span>قند خون</span><strong>${glucose}</strong></div>
+      <div class="metric"><span>سن</span><strong>${age}</strong></div>
+      <div class="metric"><span>BMI</span><strong>${bmi}</strong></div>
+      <div class="metric"><span>DPF</span><strong>${dpf}</strong></div>
+    </div>
+  `;
+
+  if (prediction === 1) {
+    result.innerHTML = `
+      <div class="result-icon" style="color:#ff7597">⚠</div>
+      <h3 style="color:#ff7597">خروجی مدل: کلاس ۱</h3>
+      <p>مدل بر اساس قوانین درخت تصمیم، نتیجه مثبت برای دیابت را پیش‌بینی کرده است.</p>
+      <span class="result-label positive">Diabetes Prediction: Positive</span>
+      ${metrics}
+      <p>این نتیجه به معنی تشخیص قطعی نیست. برای بررسی دقیق‌تر به پزشک مراجعه کنید.</p>
+    `;
+  } else {
+    result.innerHTML = `
+      <div class="result-icon" style="color:#66d9a1;background:#178c5418;border-color:#178c5455">✓</div>
+      <h3 style="color:#66d9a1">خروجی مدل: کلاس ۰</h3>
+      <p>مدل بر اساس قوانین درخت تصمیم، نتیجه منفی برای دیابت را پیش‌بینی کرده است.</p>
+      <span class="result-label negative">Diabetes Prediction: Negative</span>
+      ${metrics}
+      <p>نتیجه منفی، دیابت را رد نمی‌کند. در صورت وجود علائم یا عوامل خطر، بررسی پزشکی ضروری است.</p>
+    `;
+  }
+});
+
+form.addEventListener('reset', function() {
+  result.innerHTML = `
+    <div class="result-icon">♡</div>
+    <h3>منتظر اطلاعات شما هستیم</h3>
+    <p>پس از تکمیل فرم و کلیک روی دکمه تحلیل، نتیجه الگوریتم در این قسمت نمایش داده می‌شود.</p>
+    <div class="result-placeholder">AI ENGINE · READY</div>
+  `;
+});
+</script>
+</body>
+</html>
