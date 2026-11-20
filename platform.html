@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پلتفرم جامع تشخیص (نسخه اصلاح‌شده)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  
+  /* اصلاح ساختار بدنه برای جلوگیری از قفل شدن اسکرول */
+  body {
+    font-family: Tahoma, "Segoe UI", sans-serif;
+    background: #ffffff;
+    color: #1a3a6b;
+    min-height: 100vh;
+    padding: 40px 20px;
+    position: relative;
+    overflow-y: auto; /* اجازه اسکرول عمودی */
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column; /* تغییر به ستونی */
+    align-items: center;
+  }
+
+  .bg-shapes { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .shape { position: absolute; opacity: 0.14; filter: blur(1px); }
+  .circle { border-radius: 50%; background: radial-gradient(circle at 30% 30%, #4a90e2, #1a5fb4); }
+  .c1 { width: 220px; height: 220px; top: 8%;  left: 6%;  animation: float1 18s ease-in-out infinite; }
+  .c2 { width: 140px; height: 140px; top: 60%; left: 12%; animation: float2 22s ease-in-out infinite; }
+  .c3 { width: 300px; height: 300px; top: 15%; right: 8%; animation: float3 26s ease-in-out infinite; }
+  .c4 { width: 90px;  height: 90px;  bottom: 12%; right: 20%; animation: float1 15s ease-in-out infinite reverse; }
+  .square { background: linear-gradient(135deg, #4a90e2, #2d6cdf); border-radius: 16px; }
+  .s1 { width: 110px; height: 110px; top: 70%; right: 8%;  animation: spinFloat 30s linear infinite; }
+  .s2 { width: 70px;  height: 70px;  top: 25%; left: 18%;  animation: spinFloat 24s linear infinite reverse; }
+  .s3 { width: 150px; height: 150px; bottom: 6%; left: 40%; animation: spinFloat 36s linear infinite; }
+  .triangle { width: 0; height: 0; border-left: 60px solid transparent; border-right: 60px solid transparent; border-bottom: 100px solid #4a90e2; opacity: 0.12; }
+  .t1 { top: 40%; right: 30%; animation: float2 20s ease-in-out infinite; }
+  .t2 { top: 5%;  left: 45%;  animation: float3 25s ease-in-out infinite; transform: scale(0.7) rotate(20deg); }
+  .ring { border-radius: 50%; border: 14px solid #4a90e2; background: transparent; opacity: 0.1; }
+  .r1 { width: 180px; height: 180px; top: 80%; left: 5%;  animation: spinFloat 40s linear infinite; }
+  .r2 { width: 120px; height: 120px; top: 10%; right: 40%; animation: spinFloat 28s linear infinite reverse; }
+  
+  @keyframes float1 {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33%     { transform: translate(30px,-40px) scale(1.08); }
+    66%     { transform: translate(-25px,25px) scale(0.95); }
+  }
+  @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px,35px); } }
+  @keyframes float3 {
+    0%,100% { transform: translate(0,0) rotate(0deg); }
+    50%     { transform: translate(35px,-30px) rotate(15deg); }
+  }
+  @keyframes spinFloat {
+    0%   { transform: rotate(0deg)   translateY(0); }
+    50%  { transform: rotate(180deg) translateY(-25px); }
+    100% { transform: rotate(360deg) translateY(0); }
+  }
+
+  /* صفحه‌ها */
+  .page-container {
+    position: relative; z-index: 1; width: 100%;
+    display: flex; justify-content: center; flex: 1;
+  }
+  .landing { max-width: 1100px; width: 100%; animation: fadeIn 0.6s ease; margin-top: auto; margin-bottom: auto; }
+  .landing-title { text-align: center; margin-bottom: 36px; }
+  .landing-title h1 { font-size: 30px; color: #1a5fb4; margin-bottom: 10px; }
+  .landing-title p { font-size: 15px; color: #4a6a95; }
+  .landing-note { text-align: center; font-size: 11px; color: #8aa8cc; margin-top: 8px; }
+  
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .card {
+    background: #fff; border-radius: 20px; padding: 28px 20px; text-align: center;
+    cursor: pointer; border: 2px solid #e3eefb;
+    box-shadow: 0 12px 32px rgba(26,95,180,0.12);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+    background: linear-gradient(90deg, #1a5fb4, #4a90e2, #6db3f2);
+    transform: scaleX(0); transform-origin: right; transition: transform 0.4s;
+  }
+  .card:hover::before { transform: scaleX(1); }
+  .card:hover { transform: translateY(-8px); box-shadow: 0 22px 48px rgba(26,95,180,0.22); border-color: #4a90e2; }
+  .card-icon { font-size: 46px; margin-bottom: 14px; display: block; transition: transform 0.4s; }
+  .card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+  .card h2 { font-size: 17px; color: #1a3a6b; margin-bottom: 9px; }
+  .card p  { font-size: 12px; color: #6a8fc4; line-height: 1.75; margin-bottom: 16px; }
+  .card-btn {
+    display: inline-block; padding: 9px 18px;
+    background: linear-gradient(135deg, #1a5fb4, #4a90e2);
+    color: #fff; border-radius: 30px; font-size: 12.5px; font-weight: bold;
+    transition: box-shadow 0.25s;
+  }
+  .card:hover .card-btn { box-shadow: 0 6px 18px rgba(26,95,180,0.35); }
+
+  /* فرم‌ها */
+  .form-page { display: none; max-width: 720px; width: 100%; animation: fadeIn 0.5s ease; }
+  .form-page.active { display: block; }
+  .container {
+    background: #fff; border-radius: 24px;
+    box-shadow: 0 25px 70px rgba(26,95,180,0.18), 0 0 0 1px rgba(74,144,226,0.12);
+    overflow: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a5fb4 0%, #4a90e2 55%, #6db3f2 100%);
+    color: #fff; padding: 28px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .header h1 { font-size: 22px; margin-bottom: 6px; position: relative; z-index: 1; }
+  .header p  { font-size: 12px; opacity: 0.95; position: relative; z-index: 1; }
+  .back-btn {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(255,255,255,0.2); color: #fff; border: none;
+    padding: 7px 14px; border-radius: 8px; cursor: pointer;
+    font-family: inherit; font-size: 12px; z-index: 2; transition: background 0.25s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.35); }
+
+  .content { padding: 26px; }
+  .form-group { margin-bottom: 16px; }
+  label { display: block; margin-bottom: 6px; font-weight: bold; color: #1a3a6b; font-size: 13px; }
+  label .hint { font-weight: normal; color: #6a8fc4; font-size: 11.5px; }
+  input, select {
+    width: 100%; padding: 11px 14px; border: 2px solid #d6e4f5;
+    border-radius: 12px; font-size: 14px; font-family: inherit;
+    color: #1a3a6b; background: #fbfdff;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  }
+  input::placeholder { color: #a8c0e0; }
+  input:focus, select:focus {
+    outline: none; border-color: #4a90e2; background: #fff;
+    box-shadow: 0 0 0 4px rgba(74,144,226,0.15);
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  
+  .btn {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, #1a5fb4, #4a90e2);
+    color: #fff; border: none; border-radius: 12px;
+    font-size: 15.5px; font-weight: bold; font-family: inherit;
+    cursor: pointer; margin-top: 10px;
+    transition: transform 0.2s, box-shadow 0.25s;
+    box-shadow: 0 6px 18px rgba(26,95,180,0.28);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(26,95,180,0.4); }
+  .btn:active { transform: translateY(0); }
+
+  /* نتایج */
+  .result { margin-top: 22px; padding: 20px; border-radius: 14px; display: none; animation: fadeIn 0.45s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .result-positive { background: #fff5f4; border: 1px solid #f3c2bd; border-right: 6px solid #e74c3c; }
+  .result-warning  { background: #fff9ec; border: 1px solid #f5dca8; border-right: 6px solid #f39c12; }
+  .result-negative { background: #f2fbf6; border: 1px solid #b9e6cd; border-right: 6px solid #27ae60; }
+  .result-title { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: #1a3a6b; }
+  .result-text { font-size: 13px; line-height: 1.95; color: #2b4d7e; }
+  .result-text ul { margin: 8px 20px 0 0; }
+  .result-text li { margin-bottom: 4px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: bold; margin-left: 8px; }
+  .badge-red    { background: #e74c3c; color: #fff; }
+  .badge-orange { background: #f39c12; color: #fff; }
+  .badge-green  { background: #27ae60; color: #fff; }
+
+  .tree-log {
+    background: #f5f9ff; border: 1px dashed #b8d3f0; border-radius: 10px;
+    padding: 12px 15px; margin-top: 12px; font-size: 11.5px; color: #2b4d7e;
+    font-family: "Courier New", monospace;
+    direction: ltr; text-align: left; max-height: 180px; overflow-y: auto;
+  }
+  
+  .disclaimer, .science-note {
+    margin-top: 18px; padding: 12px 14px; border-radius: 10px; font-size: 11.5px; line-height: 1.7;
+  }
+  .disclaimer { background: #eef5ff; color: #4a6a95; border-right: 4px solid #4a90e2; }
+  .science-note { background: #fef9e7; color: #7a6a2a; border-right: 4px solid #f39c12; }
+
+  @media (max-width: 1000px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 1fr; }
+    .landing-title h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-shapes">
+  <div class="shape circle c1"></div>
+  <div class="shape circle c2"></div>
+  <div class="shape circle c3"></div>
+  <div class="shape circle c4"></div>
+  <div class="shape square s1"></div>
+  <div class="shape square s2"></div>
+  <div class="shape square s3"></div>
+  <div class="shape triangle t1"></div>
+  <div class="shape triangle t2"></div>
+  <div class="shape ring r1"></div>
+  <div class="shape ring r2"></div>
+</div>
+
+<div class="page-container">
+  <!-- صفحه اصلی -->
+  <div class="landing" id="landingPage">
+    <div class="landing-title">
+      <h1>🏥 پلتفرم جامع تشخیص</h1>
+      <p>نسخه اصلاح‌شده بر اساس معیارهای بالینی استاندارد</p>
+      <div class="landing-note">ADA 2026 · AHA/ACC 2017 · ATP III · WHO 2024</div>
+    </div>
+    <div class="cards">
+      <div class="card" onclick="openForm('diabetes')">
+        <span class="card-icon">🩺</span>
+        <h2>تشخیص دیابت</h2>
+        <p>بر اساس معیارهای استاندارد ADA 2026 (FPG، A1C، قند تصادفی)</p>
+        <span class="card-btn">ورود ←</span>
+      </div>
+      <div class="card" onclick="openForm('anemia')">
+        <span class="card-icon">🩸</span>
+        <h2>تشخیص کم‌خونی</h2>
+        <p>بازنمایی درخت تصمیم بالینی (با هشدار محدودیت علمی)</p>
+        <span class="card-btn">ورود ←</span>
+      </div>
+      <div class="card" onclick="openForm('pressure')">
+        <span class="card-icon">💓</span>
+        <h2>فشار خون</h2>
+        <p>طبقه‌بندی AHA/ACC 2017 + محاسبه ریسک قلبی-عروقی</p>
+        <span class="card-btn">ورود ←</span>
+      </div>
+      <div class="card" onclick="openForm('lipid')">
+        <span class="card-icon">🧪</span>
+        <h2>چربی خون</h2>
+        <p>ارزیابی پروفایل لیپیدی بر اساس ATP III</p>
+        <span class="card-btn">ورود ←</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- دیابت -->
+  <div class="form-page" id="diabetesPage">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="goHome()">← بازگشت</button>
+        <h1>🩺 تشخیص دیابت</h1>
+        <p>بر اساس معیارهای ADA 2026</p>
+      </div>
+      <div class="content">
+        <form id="diabetesForm">
+          <div class="row">
+            <div class="form-group">
+              <label>FPG (قند ناشتا) <span class="hint">(mg/dL)</span></label>
+              <input type="number" id="fpg" step="1" min="20" max="500" placeholder="مثلاً ۱۱۰">
+            </div>
+            <div class="form-group">
+              <label>A1C <span class="hint">(%) - اختیاری</span></label>
+              <input type="number" id="a1c" step="0.1" min="3" max="15" placeholder="مثلاً ۵.۸">
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group">
+              <label>قند تصادفی <span class="hint">(mg/dL) - با علائم</span></label>
+              <input type="number" id="randomGlucose" step="1" min="20" max="800" placeholder="مثلاً ۱۸۰">
+            </div>
+            <div class="form-group">
+              <label>علائم هیپرگلیسمی</label>
+              <select id="symptoms">
+                <option value="no">خیر</option>
+                <option value="yes">بله (پلی‌اوری، پلی‌دیپسی، کاهش وزن)</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn">🔍 ارزیابی</button>
+        </form>
+        <div id="diabetesResult" class="result"></div>
+        <div class="disclaimer">⚠️ این ابزار جایگزین تشخیص پزشک نیست.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- کم‌خونی -->
+  <div class="form-page" id="anemiaPage">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="goHome()">← بازگشت</button>
+        <h1>🩸 تشخیص کم‌خونی</h1>
+        <p>بازنمایی درخت تصمیم بالینی</p>
+      </div>
+      <div class="content">
+        <form id="anemiaForm">
+          <div class="row">
+            <div class="form-group"><label>PCV / HCT <span class="hint">(%)</span></label>
+              <input type="number" id="pcv" step="0.1" min="5" max="70" placeholder="مثلاً ۳۵" required></div>
+            <div class="form-group"><label>هموگلوبین (HGB) <span class="hint">(g/dL)</span></label>
+              <input type="number" id="hgb" step="0.1" min="1" max="25" placeholder="مثلاً ۱۲" required></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label>RBC <span class="hint">(میلیون/میکرولیتر)</span></label>
+              <input type="number" id="rbc" step="0.01" min="1" max="8" placeholder="مثلاً ۴.۵" required></div>
+            <div class="form-group"><label>سن <span class="hint">(سال)</span></label>
+              <input type="number" id="aAge" min="1" max="120" placeholder="مثلاً ۳۰" required></div>
+          </div>
+          <div class="form-group"><label>جنسیت</label>
+            <select id="aGender" required>
+              <option value="">انتخاب کنید</option>
+              <option value="M">مرد (M)</option>
+              <option value="F">زن (F)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">🔍 اجرای درخت تصمیم</button>
+        </form>
+        <div id="anemiaResult" class="result"></div>
+        <div class="science-note">⚠️ <strong>هشدار علمی:</strong> این درخت از شاخص‌های تشخیصی به عنوان ورودی استفاده می‌کند (Circular Prediction). این ماژول یک بازنمایی قاعده است، نه مدل پیش‌بینی مستقل.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- فشار خون (تکمیل شده) -->
+  <div class="form-page" id="pressurePage">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="goHome()">← بازگشت</button>
+        <h1>💓 ارزیابی فشار خون</h1>
+        <p>طبقه‌بندی AHA/ACC 2017 + ریسک قلبی-عروقی</p>
+      </div>
+      <div class="content">
+        <form id="pressureForm">
+          <div class="row">
+            <div class="form-group"><label>فشار سیستولیک (SBP) <span class="hint">(mmHg)</span></label>
+              <input type="number" id="sbp" step="1" min="60" max="260" placeholder="مثلاً ۱۲۰" required></div>
+            <div class="form-group"><label>فشار دیاستولیک (DBP) <span class="hint">(mmHg)</span></label>
+              <input type="number" id="dbpP" step="1" min="30" max="160" placeholder="مثلاً ۸۰" required></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label>سن <span class="hint">(سال)</span></label>
+              <input type="number" id="pAge" min="1" max="120" placeholder="مثلاً ۵۰" required></div>
+            <div class="form-group"><label>جنسیت</label>
+              <select id="pGender" required>
+                <option value="">انتخاب کنید</option>
+                <option value="M">مرد (M)</option>
+                <option value="F">زن (F)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label>سابقه دیابت</label>
+              <select id="pDiabetes" required>
+                <option value="no">خیر</option>
+                <option value="yes">بله</option>
+              </select>
+            </div>
+            <div class="form-group"><label>مصرف سیگار</label>
+              <select id="pSmoke" required>
+                <option value="no">خیر</option>
+                <option value="yes">بله</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>سابقه بیماری قلبی-عروقی</label>
+            <select id="pHeart" required>
+              <option value="no">خیر</option>
+              <option value="yes">بله</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">🔍 ارزیابی جامع</button>
+        </form>
+        <div id="pressureResult" class="result"></div>
+        <div class="disclaimer">⚠️ تشخیص قطعی نیازمند اندازه‌گیری در چند نوبت توسط پزشک است.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- چربی خون -->
+  <div class="form-page" id="lipidPage">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="goHome()">← بازگشت</button>
+        <h1>🧪 ارزیابی چربی خون</h1>
+        <p>بر اساس معیارهای ATP III</p>
+      </div>
+      <div class="content">
+        <form id="lipidForm">
+          <div class="row">
+            <div class="form-group"><label>کلسترول کل <span class="hint">(mg/dL)</span></label>
+              <input type="number" id="tc" step="1" min="50" max="600" placeholder="مثلاً ۲۰۰" required></div>
+            <div class="form-group"><label>LDL <span class="hint">(mg/dL)</span></label>
+              <input type="number" id="ldl" step="1" min="10" max="500" placeholder="مثلاً ۱۳۰" required></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label>HDL <span class="hint">(mg/dL)</span></label>
+              <input type="number" id="hdl" step="1" min="5" max="150" placeholder="مثلاً ۴۵" required></div>
+            <div class="form-group"><label>تری‌گلیسرید <span class="hint">(mg/dL)</span></label>
+              <input type="number" id="tg" step="1" min="20" max="1000" placeholder="مثلاً ۱۵۰" required></div>
+          </div>
+          <div class="form-group"><label>جنسیت <span class="hint">(برای تفسیر HDL)</span></label>
+            <select id="lGender" required>
+              <option value="">انتخاب کنید</option>
+              <option value="M">مرد (M)</option>
+              <option value="F">زن (F)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">🔍 ارزیابی چربی خون</button>
+        </form>
+        <div id="lipidResult" class="result"></div>
+        <div class="disclaimer">⚠️ تفسیر باید توسط پزشک انجام شود.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============== ناوبری ============== */
+function openForm(type) {
+  document.querySelectorAll('.landing, .form-page').forEach(p => {
+    p.style.display = 'none';
+    p.classList.remove('active');
+  });
+  const target = document.getElementById(type + 'Page');
+  target.classList.add('active');
+  target.style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  document.querySelectorAll('.form-page').forEach(p => {
+    p.style.display = 'none';
+    p.classList.remove('active');
+  });
+  const landing = document.getElementById('landingPage');
+  landing.style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+/* ============== منطق کم‌خونی ============== */
+function runAnemiaTree(pcv, hgb, rbc, age, gender) {
+  const log = []; const push = (c, v) => log.push(`${c}  =>  ${v}`);
+  if (pcv <= 33.200) { push(`PCV <= 33.200 (${pcv})`, '1.0'); return { result: 1.0, log }; }
+  push(`PCV > 33.200 (${pcv})`, 'ادامه');
+  if (hgb <= 12.100) {
+    push(`HGB <= 12.100 (${hgb})`, 'ادامه');
+    if (hgb <= 10.900) { push(`HGB <= 10.900 (${hgb})`, '1.0'); return { result: 1.0, log }; }
+    push(`HGB > 10.900 (${hgb})`, 'ادامه');
+    if (rbc <= 3.790) {
+      push(`RBC <= 3.790 (${rbc})`, 'ادامه');
+      if (age <= 49) { push(`Age <= 49 (${age})`, '1.0'); return { result: 1.0, log }; }
+      push(`Age > 49 (${age})`, '0.0'); return { result: 0.0, log };
+    }
+    push(`RBC > 3.790 (${rbc})`, 'ادامه');
+    if (gender === 'F') { push(`Gender = F`, '0.0'); return { result: 0.0, log }; }
+    push(`Gender = M`, 'ادامه');
+    if (hgb <= 11.800) {
+      push(`HGB <= 11.800 (${hgb})`, 'ادامه');
+      if (rbc <= 5.400) {
+        push(`RBC <= 5.400 (${rbc})`, 'ادامه');
+        if (rbc <= 4.270) { push(`RBC <= 4.270 (${rbc})`, '0.0'); return { result: 0.0, log }; }
+        push(`RBC > 4.270 (${rbc})`, '1.0'); return { result: 1.0, log };
+      }
+      push(`RBC > 5.400 (${rbc})`, '0.0'); return { result: 0.0, log };
+    }
+    push(`HGB > 11.800 (${hgb})`, '0.0'); return { result: 0.0, log };
+  }
+  push(`HGB > 12.100 (${hgb})`, '0.0'); return { result: 0.0, log };
+}
+
+/* ============== منطق دیابت ============== */
+function runDiabetesADA(fpg, a1c, randomGlucose, symptoms) {
+  const log = []; const push = (c, v) => log.push(`${c}  =>  ${v}`);
+  if (randomGlucose !== null && symptoms === 'yes') {
+    if (randomGlucose >= 200) { push(`Random Glucose >= 200 + علائم (${randomGlucose})`, 'دیابت'); return { level: 'دیابت', log }; }
+    push(`Random Glucose < 200 (${randomGlucose})`, 'ادامه');
+  }
+  if (fpg !== null) {
+    if (fpg >= 126) { push(`FPG >= 126 (${fpg})`, 'دیابت'); return { level: 'دیابت', log }; }
+    if (fpg >= 100) { push(`FPG 100-125 (${fpg})`, 'پری‌دیابت'); }
+    else { push(`FPG < 100 (${fpg})`, 'طبیعی'); }
+  }
+  if (a1c !== null) {
+    if (a1c >= 6.5) { push(`A1C >= 6.5 (${a1c})`, 'دیابت'); return { level: 'دیابت', log }; }
+    if (a1c >= 5.7) { push(`A1C 5.7-6.4 (${a1c})`, 'پری‌دیابت'); if (!fpg || fpg < 100) return { level: 'پری‌دیابت', log }; }
+    else { push(`A1C < 5.7 (${a1c})`, 'طبیعی'); }
+  }
+  if (log.some(l => l.includes('پری‌دیابت'))) return { level: 'پری‌دیابت', log };
+  push('همه شاخص‌ها در محدوده طبیعی', 'طبیعی');
+  return { level: 'طبیعی', log };
+}
+
+/* ============== منطق فشار خون (توسعه‌یافته) ============== */
+function runPressureAHA(sbp, dbp, age, gender, isDiabetic, isSmoker, hasHeartDisease) {
+  const log = []; const push = (c, v) => log.push(`${c}  =>  ${v}`);
+  let stage = 'Normal';
+
+  // تعیین مرحله
+  if (sbp > 180 || dbp > 120) {
+    stage = 'بحران فشار خون';
+    push(`SBP > 180 یا DBP > 120 (${sbp}/${dbp})`, stage);
+  } else if (sbp >= 140 || dbp >= 90) {
+    stage = 'Stage 2';
+    push(`SBP >= 140 یا DBP >= 90 (${sbp}/${dbp})`, stage);
+  } else if ((sbp >= 130 && sbp <= 139) || (dbp >= 80 && dbp <= 89)) {
+    stage = 'Stage 1';
+    push(`SBP 130-139 یا DBP 80-89 (${sbp}/${dbp})`, stage);
+  } else if (sbp >= 120 && sbp <= 129 && dbp < 80) {
+    stage = 'Elevated';
+    push(`SBP 120-129 و DBP < 80 (${sbp}/${dbp})`, stage);
+  } else {
+    stage = 'Normal';
+    push(`SBP < 120 و DBP < 80 (${sbp}/${dbp})`, stage);
+  }
+
+  // محاسبه ریسک قلبی-عروقی
+  let riskScore = 0;
+  if (age >= 55) riskScore += 1;
+  if (gender === 'M' && age >= 45) riskScore += 1;
+  if (isDiabetic === 'yes') riskScore += 1;
+  if (isSmoker === 'yes') riskScore += 1;
+  if (hasHeartDisease === 'yes') riskScore += 2;
+  
+  let riskLevel = 'پایین';
+  if (riskScore >= 3) riskLevel = 'بالا';
+  else if (riskScore >= 1) riskLevel = 'متوسط';
+
+  log.push(`--- ارزیابی ریسک ---`);
+  log.push(`سن: ${age}، جنسیت: ${gender}، دیابت: ${isDiabetic}، سیگار: ${isSmoker}، سابقه قلبی: ${hasHeartDisease}`);
+  log.push(`امتیاز ریسک: ${riskScore} => سطح ${riskLevel}`);
+
+  return { stage, riskLevel, log };
+}
+
+/* ============== منطق چربی خون ============== */
+function runLipidATP(tc, ldl, hdl, tg, gender) {
+  const log = []; const push = (c, v) => log.push(`${c}  =>  ${v}`);
+  let level = 'Normal';
+
+  if (tc >= 240) { push(`Total Chol >= 240 (${tc})`, 'High'); level = 'High'; }
+  else if (tc >= 200) { push(`Total Chol 200-239 (${tc})`, 'Borderline'); if (level === 'Normal') level = 'Borderline'; }
+  else { push(`Total Chol < 200 (${tc})`, 'Desirable'); }
+
+  if (ldl >= 190) { push(`LDL >= 190 (${ldl})`, 'Very High'); level = 'Very High'; }
+  else if (ldl >= 160) { push(`LDL 160-189 (${ldl})`, 'High'); if (level !== 'Very High') level = 'High'; }
+  else if (ldl >= 130) { push(`LDL 130-159 (${ldl})`, 'Borderline'); if (level === 'Normal') level = 'Borderline'; }
+  else { push(`LDL < 130 (${ldl})`, 'Optimal/Near Optimal'); }
+
+  const hdlLow = (gender === 'M') ? 40 : 50;
+  if (hdl < hdlLow) { push(`HDL < ${hdlLow} (${hdl})`, 'Low (ریسک)'); if (level === 'Normal') level = 'Borderline'; }
+  else { push(`HDL >= ${hdlLow} (${hdl})`, 'Normal'); }
+
+  if (tg >= 500) { push(`TG >= 500 (${tg})`, 'Very High'); level = 'Very High'; }
+  else if (tg >= 200) { push(`TG 200-499 (${tg})`, 'High'); if (level !== 'Very High') level = 'High'; }
+  else if (tg >= 150) { push(`TG 150-199 (${tg})`, 'Borderline'); if (level === 'Normal') level = 'Borderline'; }
+  else { push(`TG < 150 (${tg})`, 'Normal'); }
+
+  return { level, log };
+}
+
+/* ============== تابع نمایش نتیجه ============== */
+function renderResult(elId, cls, title, badgeClass, badgeText, bodyHTML, log) {
+  const el = document.getElementById(elId);
+  el.className = 'result ' + cls;
+  el.innerHTML = `
+    <div class="result-title">${title}</div>
+    <div class="result-text">
+      <p><span class="badge ${badgeClass}">${badgeText}</span></p>
+      ${bodyHTML}
+      <p style="margin-top:12px"><strong>مسیر تصمیم:</strong></p>
+      <div class="tree-log">${log.join('<br>')}</div>
+    </div>`;
+  el.style.display = 'block';
+  
+  // اسکرول صحیح به سمت نتیجه (نه قفل کردن صفحه)
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+/* ============== هندلرهای فرم ============== */
+document.getElementById('anemiaForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const pcv = parseFloat(document.getElementById('pcv').value);
+  const hgb = parseFloat(document.getElementById('hgb').value);
+  const rbc = parseFloat(document.getElementById('rbc').value);
+  const age = parseInt(document.getElementById('aAge').value);
+  const gender = document.getElementById('aGender').value;
+  if (isNaN(pcv) || isNaN(hgb) || isNaN(rbc) || isNaN(age) || !gender) return;
+
+  const { result, log } = runAnemiaTree(pcv, hgb, rbc, age, gender);
+  const pos = result === 1.0;
+  renderResult(
+    'anemiaResult',
+    pos ? 'result-positive' : 'result-negative',
+    pos ? '🔴 کم‌خونی تشخیص داده شد (کلاس 1)' : '🟢 کم‌خونی تشخیص داده نشد (کلاس 0)',
+    pos ? 'badge-red' : 'badge-green',
+    `Anemia = ${result.toFixed(1)}`,
+    `<ul>
+      <li>PCV/HCT = ${pcv} ٪</li>
+      <li>HGB = ${hgb} g/dL</li>
+      <li>RBC = ${rbc}</li>
+      <li>Age = ${age} سال</li>
+      <li>Gender = ${gender}</li>
+    </ul>`,
+    log
+  );
+});
+
+document.getElementById('diabetesForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const fpgRaw = document.getElementById('fpg').value;
+  const a1cRaw = document.getElementById('a1c').value;
+  const randRaw = document.getElementById('randomGlucose').value;
+  const symptoms = document.getElementById('symptoms').value;
+
+  const fpg = fpgRaw === '' ? null : parseFloat(fpgRaw);
+  const a1c = a1cRaw === '' ? null : parseFloat(a1cRaw);
+  const randomGlucose = randRaw === '' ? null : parseFloat(randRaw);
+
+  if (fpg === null && a1c === null && randomGlucose === null) {
+    alert('حداقل یکی از مقادیر FPG، A1C یا قند تصادفی را وارد کنید.');
+    return;
+  }
+
+  const { level, log } = runDiabetesADA(fpg, a1c, randomGlucose, symptoms);
+  let cls, badgeCls, title;
+  if (level === 'دیابت') { cls = 'result-positive'; badgeCls = 'badge-red'; title = '🔴 دیابت تشخیص داده شد'; }
+  else if (level === 'پری‌دیابت') { cls = 'result-warning'; badgeCls = 'badge-orange'; title = '🟡 پری‌دیابت (Prediabetes)'; }
+  else { cls = 'result-negative'; badgeCls = 'badge-green'; title = '🟢 قند خون طبیعی'; }
+
+  renderResult(
+    'diabetesResult', cls, title, badgeCls, level,
+    `<ul>
+      ${fpg !== null ? `<li>FPG = ${fpg} mg/dL</li>` : ''}
+      ${a1c !== null ? `<li>A1C = ${a1c} ٪</li>` : ''}
+      ${randomGlucose !== null ? `<li>Random Glucose = ${randomGlucose} mg/dL</li>` : ''}
+      <li>علائم = ${symptoms === 'yes' ? 'بله' : 'خیر'}</li>
+    </ul>`,
+    log
+  );
+});
+
+document.getElementById('pressureForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const sbp = parseInt(document.getElementById('sbp').value);
+  const dbp = parseInt(document.getElementById('dbpP').value);
+  const age = parseInt(document.getElementById('pAge').value);
+  const gender = document.getElementById('pGender').value;
+  const isDiabetic = document.getElementById('pDiabetes').value;
+  const isSmoker = document.getElementById('pSmoke').value;
+  const hasHeartDisease = document.getElementById('pHeart').value;
+
+  if (isNaN(sbp) || isNaN(dbp) || isNaN(age) || !gender) return;
+
+  const { stage, riskLevel, log } = runPressureAHA(sbp, dbp, age, gender, isDiabetic, isSmoker, hasHeartDisease);
+
+  let cls, badgeCls, title;
+  if (stage === 'Normal') { cls = 'result-negative'; badgeCls = 'badge-green'; title = '🟢 فشار خون طبیعی'; }
+  else if (stage === 'Elevated') { cls = 'result-warning'; badgeCls = 'badge-orange'; title = '🟡 فشار خون بالا (Elevated)'; }
+  else if (stage === 'Stage 1') { cls = 'result-warning'; badgeCls = 'badge-orange'; title = '🟡 فشار خون مرحله ۱ (Stage 1)'; }
+  else if (stage === 'Stage 2') { cls = 'result-positive'; badgeCls = 'badge-red'; title = '🔴 فشار خون مرحله ۲ (Stage 2)'; }
+  else { cls = 'result-positive'; badgeCls = 'badge-red'; title = '🚨 بحران فشار خون (Crisis)'; }
+
+  let riskCls = riskLevel === 'بالا' ? 'badge-red' : (riskLevel === 'متوسط' ? 'badge-orange' : 'badge-green');
+
+  renderResult(
+    'pressureResult', cls, title, badgeCls, stage,
+    `<ul>
+      <li>Systolic_BP = ${sbp} mmHg</li>
+      <li>Diastolic_BP = ${dbp} mmHg</li>
+      <li>سن = ${age} سال</li>
+      <li>جنسیت = ${gender}</li>
+      <li>دیابت = ${isDiabetic === 'yes' ? 'بله' : 'خیر'}</li>
+      <li>سیگار = ${isSmoker === 'yes' ? 'بله' : 'خیر'}</li>
+      <li>سابقه قلبی = ${hasHeartDisease === 'yes' ? 'بله' : 'خیر'}</li>
+    </ul>
+    <p style="margin-top:10px"><span class="badge ${riskCls}">ریسک قلبی-عروقی: ${riskLevel}</span></p>`,
+    log
+  );
+});
+
+document.getElementById('lipidForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const tc = parseFloat(document.getElementById('tc').value);
+  const ldl = parseFloat(document.getElementById('ldl').value);
+  const hdl = parseFloat(document.getElementById('hdl').value);
+  const tg = parseFloat(document.getElementById('tg').value);
+  const gender = document.getElementById('lGender').value;
+  if (isNaN(tc) || isNaN(ldl) || isNaN(hdl) || isNaN(tg) || !gender) return;
+
+  const { level, log } = runLipidATP(tc, ldl, hdl, tg, gender);
+
+  let cls, badgeCls, title;
+  if (level === 'Normal') { cls = 'result-negative'; badgeCls = 'badge-green'; title = '🟢 چربی خون در محدوده مطلوب'; }
+  else if (level === 'Borderline') { cls = 'result-warning'; badgeCls = 'badge-orange'; title = '🟡 چربی خون مرزی (Borderline)'; }
+  else if (level === 'High') { cls = 'result-positive'; badgeCls = 'badge-red'; title = '🔴 چربی خون بالا'; }
+  else { cls = 'result-positive'; badgeCls = 'badge-red'; title = '🔴 چربی خون بسیار بالا'; }
+
+  renderResult(
+    'lipidResult', cls, title, badgeCls, level,
+    `<ul>
+      <li>Total Cholesterol = ${tc} mg/dL</li>
+      <li>LDL = ${ldl} mg/dL</li>
+      <li>HDL = ${hdl} mg/dL</li>
+      <li>Triglycerides = ${tg} mg/dL</li>
+      <li>جنسیت = ${gender}</li>
+    </ul>`,
+    log
+  );
+});
+</script>
+</body>
+</html>
